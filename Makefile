@@ -6,18 +6,18 @@ CC = gcc
 # -O0: 关闭优化
 # -D_GNU_SOURCE: 定义 _GNU_SOURCE 宏，以启用 GNU 扩展
 # -MMD: 生成依赖文件（.d 文件），用于自动化构建
-# -MP: 为每个依赖文件生成一个伪目标，以避免在删除头文件时出现错误
-# -fsanitize: 开启Asan检测
+# -MP: 为每个依赖文件生成一个伪目标，以避免某个头文件删除时出现错误
 CFLAGS = -Wall -Wextra -Werror -g -O0 -D_GNU_SOURCE -MMD -MP -fsanitize=address -fno-omit-frame-pointer
+LDFLAGS = -fsanitize=address
 TARGET = mysh
-SOURCES = shell.c
+SOURCES = shell.c executer.c tokenizer.c parser.c builtin.c expander.c controller.c job.c
 OBJS = $(SOURCES:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(LDFLAGS) $^ -o $@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@

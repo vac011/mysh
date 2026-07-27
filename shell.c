@@ -1,48 +1,67 @@
+#include "shell.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <string.h>
 #include <errno.h>
 
-int main(int argc, char **argv) {
+ShellState shell;
 
+int main(int argc, char **argv) {
 	if (argc > 1) {
 		if (strcmp(argv[1], "-c") == 0) {
 			if (argc < 3) {
 				fprintf(stderr, "Usage: %s -c <command>\n", argv[0]);
 				return 1;
 			}
-			printf("Command: %s\n", argv[2]);
-			return 0;
+			controller_init(0);
+			execute_line(argv[2]);
+			return shell.last_status;
 		} else {
-			char *file = strdup(argv[1]);
-			printf("File: %s\n", file);
-			free(file);
-			return 0;
+			int fd = open(argv[1], O_RDONLY);
+			if (fd == -1) {
+				perror("open");
+				return 1;
+			}
+			dup2(fd, 0);
+			close(fd);
 		}
 	}
-	char *buffer = NULL;
-	size_t len = 0;
-	ssize_t nread = 0;
-	while (1) {
-		printf("mysh> ");
-		fflush(stdout);
-		nread = getline(&buffer, &len, stdin);
-		if (nread == -1) {
+
+	if (controller_init(isatty(STDIN_FILENO)) == -1) {
+		perror("controller_init");
+		return 1;
+	}
+	
+	while (!shell.should_exit) {
+		check_jobs();
+
+		if (shell.interactive) {
+			printf("mysh> ");
+			fflush(stdout);
+		}
+
+		char *line = NULL;
+		size_t len = 0;
+		while (getline(&line, &len, stdin)== -1) {
 			if (feof(stdin)) {
-				printf("exit\n");
 				break;
 			} else if (errno == EINTR) {
 				continue;
 			} else {
 				perror("getline");
+				shell.last_status = 1;
 				break;
 			}
 		}
-		buffer[strcspn(buffer, "\n")] = 0;
+		if (line == NULL) break;
+		line[strcspn(line, "\n")] = 0;
 
-		printf("%s\n", buffer);
+		execute_line(line);
+
+		free(line);
 	}
-	free(buffer);
-	return 0;
+	// clean the jobs
+	return shell.last_status;
 }
