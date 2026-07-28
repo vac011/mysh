@@ -10,7 +10,7 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror -g -O0 -D_GNU_SOURCE -MMD -MP -fsanitize=address -fno-omit-frame-pointer
 LDFLAGS = -fsanitize=address
 TARGET = mysh
-SOURCES = shell.c executer.c tokenizer.c parser.c builtin.c expander.c controller.c job.c
+SOURCES = shell.c executor.c tokenizer.c parser.c builtin.c expander.c controller.c job.c
 OBJS = $(SOURCES:.c=.o)
 DEPS = $(OBJS:.o=.d)
 
