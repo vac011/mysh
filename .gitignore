@@ -1,0 +1,4 @@
+# Build artifacts
+mysh
+*.o
+*.d

@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	
+	char *line = NULL;
+	size_t len = 0;
 	while (!shell.should_exit) {
 		check_jobs();
 
@@ -42,26 +44,28 @@ int main(int argc, char **argv) {
 			fflush(stdout);
 		}
 
-		char *line = NULL;
-		size_t len = 0;
 		while (getline(&line, &len, stdin)== -1) {
 			if (feof(stdin)) {
-				break;
+				if (interactive) printf("\n");
+				goto cleanup;
 			} else if (errno == EINTR) {
 				continue;
 			} else {
-				perror("getline");
 				shell.last_status = 1;
-				break;
+				perror("getline");
+				goto cleanup;
 			}
 		}
-		if (line == NULL) break;
+
+		// line == NULL 永远不会发生, 不应该为了“防御式编程”而进行冗余检查, 这会掩盖真正的 bug
 		line[strcspn(line, "\n")] = 0;
 
 		execute_line(line);
-
-		free(line);
 	}
+
+// // goto cleanup 在 C 系统编程中是公认的工程写法, 并无不优雅之处。
+cleanup:
+	free(line);
 	// clean the jobs
 	return shell.last_status;
 }
