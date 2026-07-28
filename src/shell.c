@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
 
 		while (getline(&line, &len, stdin)== -1) {
 			if (feof(stdin)) {
-				if (interactive) printf("\n");
+				if (shell.interactive) printf("\n");
 				goto cleanup;
 			} else if (errno == EINTR) {
 				continue;
