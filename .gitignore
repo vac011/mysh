@@ -1,4 +1,4 @@
 # Build artifacts
 mysh
-*.o
-*.d
+src/*.o
+src/*.d
