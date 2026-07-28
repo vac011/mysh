@@ -27,6 +27,6 @@ run: $(TARGET)
 	./$(TARGET)
 
 clean:
-	rm -f $(TARGET) *.o *.d
+	rm -f $(TARGET) $(OBJS) $(DEPS)
 
 -include $(DEPS)
